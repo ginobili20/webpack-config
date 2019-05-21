@@ -10,3 +10,5 @@ const a = 1;
 let b = 2
 
 add(a, b)
+
+console.log('test')

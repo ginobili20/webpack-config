@@ -1,16 +1,22 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
+const webpack = require('webpack');
+const merge = require('webpack-merge');
+const devConfig = require('./webpack.dev.js');
+const prodConfig = require('./webpack.prod.js');
 
-module.exports = {
+const commonConfig = {
     entry: {
-        main: './src/js/index.js'
+        main: './src/js/index.js',
     },
     module: {
         rules: [{
             test: /\.js$/,
             exclude: /node_modules/,
-            loader: 'babel-loader',
+            use: [{
+                loader: 'babel-loader'
+            }]
         }, {
             test: /\.(jpg|png|gif)$/,
             use: {
@@ -26,27 +32,6 @@ module.exports = {
             use: {
                 loader: 'file-loader'
             }
-        }, {
-            test: /\.scss$/,
-            use: [
-                'style-loader',
-                {
-                    loader: 'css-loader',
-                    options: {
-                        modules: true,
-                        importLoaders: 2
-                    }
-                },
-                'sass-loader',
-                'postcss-loader'
-            ]
-        }, {
-            test: /\.css$/,
-            use: [
-                'style-loader',
-                'css-loader',
-                'postcss-loader'
-            ]
         }]
     },
     plugins: [
@@ -55,8 +40,27 @@ module.exports = {
         }),
         new CleanWebpackPlugin()
     ],
+    optimization: {
+        usedExports: true,
+        splitChunks: {
+            chunks: 'all'
+        }
+    },
+    performance: false,
     output: {
-        filename: '[name].js',
-        path: path.resolve(__dirname, 'dist')
+        path: path.resolve(__dirname, '../dist')
+    },
+    resolve: {
+        extensions: ['.js'],
+        alias: {}
     }
 }
+
+module.exports = (env) => {
+    if(env && env.production) {
+        return merge(commonConfig, prodConfig);
+    }else {
+        return merge(commonConfig, devConfig);
+    }
+}
+
