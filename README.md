@@ -231,7 +231,94 @@ babel处理es6语法 <br>
 2.如果需要兼容async/await语法 还需要安装 ```$ npm i @babel/plugin-transform-runtime @babel/runtime -D ```
 
 
+#### 10.tree shaking
+在webpack中，tree-shaking的作用是可以剔除js中用不上的代码，但是它依赖的是静态的ES6的模块语法 <br>
+也就是说没有被引用到的模块它是不会被打包进来的，可以减少我们的包的大小，减少文件的加载时间，提高用户体验。
 
+```
+optimization: {
+        usedExports: true // tree shaking
+    }
+```
+
+在package.json里修改sideEffects为一个数组 “*.css” 表示不对css文件做tree shaking（打包的时候忽略掉没有用的代码）
+```
+  "sideEffects": [
+    "*.css"
+  ],
+```
+
+
+#### 11.代码分割
+
+js代码分割
+```
+ optimization: {
+        usedExports: true,
+        splitChunks: {
+            chunks: 'all'
+        }
+    }
+     
+```
+
+
+css 代码分割 我们修改一下之前配置的css相关loader
+
+```
+
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+
+ module: {
+        rules:[{
+            test: /\.scss$/,
+            use: [
+                MiniCssExtractPlugin.loader,
+                {
+                    loader: 'css-loader',
+                    options: {
+                        modules: true,
+                        importLoaders: 2
+                    }
+                },
+                'sass-loader',
+                'postcss-loader'
+            ]
+        }, {
+            test: /\.css$/,
+            use: [
+                MiniCssExtractPlugin.loader,
+                'css-loader',
+                'postcss-loader'
+            ]
+        }]
+    },
+    optimization: {
+        minimizer: [new OptimizeCSSAssetsPlugin({})]
+    },
+    plugins: [
+        new MiniCssExtractPlugin({
+            filename: '[name].css',
+            chunkFilename: '[name].chunk.css'
+        })
+    ]
+
+
+```
+
+
+#### 12.resolve
+extensions   引入的时候会依次查找有没有配置的后缀的文件  如果写了很多 编译起来花费时间变长 所以像jpg这种静态资源就不要写 <br>
+
+
+路径别名
+```
+alias: {
+        	child: path.resolve(__dirname, './src/child')  // 相对于当前webpack.config文件的路径
+		}
+
+```
 
 
 ### 遇到的问题
@@ -239,6 +326,7 @@ babel处理es6语法 <br>
 npm uninstall -g npm  再去官网找到对应的版本安装
 #### 2.node-sass安装失败
 试过使用cnpm，但是依然无法正常安装。google了一下，找到了满意的解决方案。<br>
+
 
 解决办法： <br>
 主要是windows平台缺少编译环境 <br>
