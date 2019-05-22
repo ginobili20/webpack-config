@@ -91,6 +91,146 @@ module.exports = {
 }
 ```
 
+#### 4.两个重要的plugin
+html-webpack-plugin <br>
+
+自动创建模板文件index.html 并把打包后的js自动引入
+（dist目录下）
+
+```
+plugins: [
+        new HtmlWebpackPlugin({
+            template: 'src/index.html'
+        })
+    ]
+```
+
+clean-webpack-plugin <br>
+
+重新打包时，自动删除dist目录 然后再打包
+
+
+注意此插件更新之后配置与以往相比略有不同  具体可以在github上找相应的文档
+
+
+```new CleanWebpackPlugin()```
+
+#### 5.output
+```
+output: {
+        filename: 'dist.js',
+        path: path.resolve(__dirname, 'bundle'),
+        publicPath: "http://xxx.com.cn"  // 前缀
+    }
+```
+
+
+#### 6.source-map
+
+作用： 帮助我们找到源代码哪里报错，而不是在打包后的代码中报错
+
+常见的几种
+```
+    devtool: 'cheap-source-map' 精确到行 不管是哪一列 性能好 
+
+    devtool: 'eval-source-map'  速度最快 但不精确
+
+    devtool: 'cheap-module-eval-source-map' 推荐使用！！！ module代表第三方库也检测
+```
+
+
+#### 7.自动打开浏览器，修改代码自动更新
+
+第一种做法 在package.json中添加一条script ```"watch": "webpack --watch"```  缺点是它不会自动打开网页  <br>
+
+第二种做法 推荐！！ devServer <br> 
+
+需要先安装一下 然后修改脚本 ```  "start": "webpack-dev-server"  ```  <br>
+ 
+在配置文件中
+```
+
+devServer: {
+        contentBase: './dist',
+        open: true,
+        port: 8080,
+        hot: true 
+        // hotOnly: true
+    },
+```
+
+第三种做法  "middleware": "node server.js" <br>
+
+需要自己编写服务器文件   安装koa或者express   ``` $ npm i express webpack-dev-middleware -D ```
+
+
+#### 8.热模块替换 HMR
+简单举个例子解释一下 <br>
+
+假如页面有个点击按钮 点一下 生成一个 item文本 然后给一个样式 背景色为黄色  如果我后续修改了背景色 自动刷新后之前点的item都没了 <br>
+我们希望修改样式代码的时候 不要刷新页面 只需要把样式替换就好 <br>
+
+```
+
+ devServer: {
+        contentBase: './dist',
+        open: true,
+        port: 9001,
+        hot: true // 开启热模块替换
+        hotOnly: true //即使hmr失效 也不刷新页面
+    }
+    
+    
+    plugins: [
+        new webpack.HotModuleReplacementPlugin()
+    ]
+```
+
+
+#### 9.babel
+babel处理es6语法 <br>
+```
+{
+            test: /\.js$/,
+            exclude: /node_modules/,
+            loader: 'babel-loader',
+        }
+
+````
+
+创建一个.babelrc的文件
+```
+
+{
+  "presets": [
+    [
+      "@babel/preset-env", {
+      "targets": {
+        "chrome": "67" // 大于67版本的chrome无需转为es5
+      },
+      "useBuiltIns": "usage"  // 使用了哪个es6语法就添加相关的补充 而不是所有的都补充
+    }
+    ]
+  ]
+}
+
+```
+
+
+用到的插件
+```
+    "@babel/core": "^7.4.4",
+    "@babel/preset-env": "^7.4.4",
+    "babel-loader": "^8.0.6",
+    "babel-polyfill": "^6.26.0"
+```
+
+#### tips: 
+1.babel-polyfill的引入是在index.js（入口文件）里的 会污染全局变量 <br>
+
+2.如果需要兼容async/await语法 还需要安装 ```$ npm i @babel/plugin-transform-runtime @babel/runtime -D ```
+
+
 
 
 
