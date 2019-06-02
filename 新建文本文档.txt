@@ -1,0 +1,689 @@
+2.2
+
+
+git add -A  提交所有变化
+git add -u  提交被修改(modified)和被删除(deleted)文件，不包括新文件(new)
+git add .  提交新文件(new)和被修改(modified)文件，不包括被删除(deleted)文件
+
+webpack是打包工具 
+
+2.3
+package.json中的
+"private": true 意思是私有项目 不会被发布 还可以把main删掉
+
+查看webpack版本 npx webpack -v  （在node_moduels中找webpack）
+
+如何查看有哪些版本 npm info webpack
+
+单独打包某个文件 npx webpack xx.js
+
+2.4
+path.resolve(__dirname, )  __dirname实际上是 webpack.config.js所在的目录的路径
+配置好入口 出口 然后npx webpack 就可以打包啦
+
+"scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "bundle": "webpack"  // 直接在命令行里 npm run bundle就可以打包啦
+  },
+
+
+总结 ： 全局安装了webpack 才有webpack指令 局部安装 使用 npx webpack xx.js  第三种方法 npm run xx （自己在script里 配置的名字）
+webpack-cli帮助我们在命令行使用webpack 以及 npx webpack等等这些指令
+
+
+2.5 
+解决 npm 不支持 当前node版本问题 
+先npm uninstall -g npm 再安装包
+
+
+3.1
+图片打包使用file-loader
+module: {
+        rules: [
+            {
+                test: /\.png$/,
+                use: {
+                    loader: 'file-loader'
+                }
+            }
+        ]
+    }
+
+3.2
+打包的图片名字是乱码 怎么样才能不变呢
+
+use: {
+                    loader: 'file-loader',
+                    options: {
+                        name: '[name]_[hash:8].[ext]'
+                    }
+                }
+
+
+如果我们想让文件打包到一个指定的文件夹里
+options: {
+                        name: '[name]_[hash:8].[ext]',
+                        outputPath: 'images/'
+                    }
+
+
+如果使用url-loader 其实是把图片转为base64编码 适用于图片小的场合
+
+test: /\.(jpg|png|gif)$/,
+                use: {
+                    loader: 'url-loader',
+                    options: {
+                        name: '[name]_[hash:8].[ext]',
+                        outputPath: 'images/',
+                        limit: 2048  // 小于2048字节打包成base64编码放进bundlejs里  大于还是打包到images里
+                    }
+                }
+
+3.3
+打包css文件
+ {
+                test:/\.css$/,
+                use: ['style-loader', 'css-loader']
+            }
+
+css-loader的作用是分析几个css之间的关系 然后把他们打包成一段css
+style-loader会在head标签里添加style标签
+
+
+打包scss
+
+解决安装不了node-sass的问题
+
+解决办法：
+主要是windows平台缺少编译环境，
+1、先运行： npm install -g node-gyp
+
+2、然后运行：运行 npm install --global --production windows-build-tools 可以自动安装跨平台的编译器：
+
+ 一执行  npm install node-sass --save-dev
+
+  在此之前一定要删除之前安装失败的包 npm uninstall node-sass
+
+
+loader执行顺序从右往左 从下往上
+
+
+对css3部分属性添加浏览器前缀 postcss-loader
+首先安装 然后创建postcss.config.js
+module.exports = {
+    plugins: [
+        require('autoprefixer')
+    ]
+}
+然后安装一下autoprefixer
+
+
+3.4
+给cssloader增加配置项
+ use: [
+                    'style-loader',
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            importLoaders: 2 // 在一个scss文件里import了另外一个scss 可能不会从最下往上走  我们希望这个被引用的scss依然可以从下往上执行2个loader
+
+                        }
+                    },
+                    'sass-loader',
+                    'postcss-loader'
+                ]
+
+
+
+css打包的模块化
+
+
+假如有一个create.js
+import aa from './TIM图片20190403205026.png'
+
+
+function createAvatar() {
+    var root = document.getElementById('root')
+    var avatar = new Image()
+    avatar.src = aa
+    avatar.className += 'avatar'
+    root.appendChild(avatar)
+}
+
+export default createAvatar
+
+还有一个index.js  引用了create
+import aa from './TIM图片20190403205026.png'
+
+import './index.scss'
+import create from './createAvatar'
+create()
+
+var root = document.getElementById('root')
+var avatar = new Image()
+avatar.src = aa
+avatar.className += 'avatar'
+root.appendChild(avatar)
+
+
+这样一来页面上会有两个相同样式的image 可是我们只在indexjs里引入了scss样式 所以证明这是一个全局样式 会引起样式冲突
+
+css  modules如何实现？
+
+                        loader: 'css-loader',
+                        options: {
+                            importLoaders: 2,
+                            modules: true // 开启
+                        }
+                    },
+
+然后在index.js里修改
+import style from './index.scss'
+
+avatar.classList.add(style.avatar)
+
+那么只有后添加的image有样式啦
+
+
+
+如何打包字体图标文件
+{
+                test: /\.(eot|ttf|svg)$/,
+                use: {
+                    loader: 'file-loader'
+                }
+
+            }
+
+
+
+3.5
+
+自动创建模板文件index.html 并把打包后的js自动引入
+（dist目录下）
+安装html-webpack-plugin
+
+plugins: [
+        new HtmlWebpackPlugin({
+            template: 'src/index.html'
+        })
+    ]
+
+需要在src中创建一个模板
+
+
+重新打包时，自动删除dist目录 然后再打包
+new CleanWebpackPlugin(['dist'])
+
+https://github.com/johnagan/clean-webpack-plugin#options-and-defaults-optional 插件已升级 传参不再是数组而是对象
+
+
+
+3.6
+
+给打包的js添加一个 地址前缀 
+ output: {
+        filename: 'dist.js',
+        path: path.resolve(__dirname, 'bundle'),
+        publicPath: "http://cdn.com.cn"  // 前缀
+    },
+
+
+3.7
+source-map 我们想知道源代码哪里出错 而不是打包后的代码
+
+devtool: 'cheap-source-map' 精确到行 不管是哪一列 性能好 
+
+    devtool: 'eval-source-map'  速度最快 但不精确
+
+    devtool: 'cheap-module-eval-source-map' 推荐使用！！！ module代表第三方库也检测
+
+
+3.8
+编译完自动打开网页
+实现改了源代码 自动打包
+第一种办法
+在package里配置script为    "watch": "webpack --watch"
+
+但是如果我们还需要模拟服务器特性以及自动打开网页
+第二种方法
+借助devServer
+先安装一下
+
+    "start": "webpack-dev-server"
+
+
+devServer: {
+        contentBase: './dist',
+        open: true,
+        port: 9001
+    }
+
+
+第三种方法
+    "middleware": "node server.js" 意思是自己写一个服务器
+需要先新建一个server.js 需要 安装koa或者express
+$ npm i express webpack-dev-middleware -D
+
+推荐devServer！！！第二种方法！
+
+
+3.9
+热模块替换 HMR
+假如页面有个点击按钮 点一下 生成一个 item文本 然后给一个样式 背景色为黄色  如果我后续修改了背景色 自动刷新后之前点的item都没了 
+我们希望修改样式代码的时候 不要刷新页面 只需要把样式替换就好
+
+ devServer: {
+        contentBase: './dist',
+        open: true,
+        port: 9001,
+        hot: true // 开启热模块替换
+        hotOnly: true //即使hmr失效 也不刷新页面
+    }
+
+3.11
+babel处理es6语法
+
+$ npm i babel-loader @babel/core -D
+ npm i @babel/preset-env -D   语法翻译
+{
+                test: /\.js$/,
+                use: {
+                    loader: 'babel-loader',
+                    exclude: /node_modules/,
+                    options: {
+                        presets: ['@babel/preset-env']
+                    }
+                }
+            }
+但是仍然有些低版本不支持 需要使用babel-polyfill
+
+{
+                test: /\.js$/,
+                use: {
+                    loader: 'babel-loader',
+                    exclude: /node_modules/,
+                    options: {
+                        presets: [['@babel/preset-env'], {
+                            useBuiltIns: 'usage' // 使用了哪个es6语法就添加相关的补充 而不是所有的都补充
+                        }]
+                    }
+                }
+            }
+
+
+3.12
+ options: {
+                        presets: [['@babel/preset-env'],
+                            {
+                                useBuiltIns: 'usage'
+                            },{
+                                targets: {
+                                    chrome: "67" // 大于67版本的chrome无需转为es5
+                                }
+                            }]
+                    }
+
+可以看看babel如何实现es6转es5的 会有很大提升
+
+babel-polyfill的引入是在index.js里的 会污染全局变量
+
+如果在开发第三方组件库 使用runtime
+$ npm i @babel/plugin-transform-runtime @babel/runtime -D
+{
+                test: /\.js$/,
+                use: {
+                    loader: 'babel-loader',
+                    exclude: /node_modules/,
+                    options: {
+                       /* presets: [['@babel/preset-env'],
+                            {
+                                useBuiltIns: 'usage'
+                            },{
+                                targets: {
+                                    chrome: "67"
+                                }
+                            }],*/
+                        "plugins": [["@babel/plugin-transform-runtime"],
+                            {
+                                "corejs": 2,
+                                "helpers": true,
+                                "regenerator": true,
+                                "useESModules": false,
+                            }
+
+                        ]
+                    }
+                }
+            }
+
+
+
+4.1 tree shaking
+
+在webpack中，tree-shaking的作用是可以剔除js中用不上的代码，但是它依赖的是静态的ES6的模块语法。
+也就是说没有被引用到的模块它是不会被打包进来的，可以减少我们的包的大小，减少文件的加载时间，提高用户体验。
+
+
+
+
+4.2
+dev 和pro 模式区分打包
+
+生产环境 sourcemap 可以不开那么全
+生产环境 要开启压缩
+
+改成webpack.dev.js 表示开发环境的配置
+再创建一个webpack.prod.js  拷贝一份到这个里面
+去掉eval-source-map  mode改成production
+devServer可以删除
+热模块替换插件也可以删除
+optimization也可以删除
+
+
+dev和pro两个配置文件有重复的entry啊 output等等
+我们创建一个webpack.common.js
+把module 以及htmlwebpackplugin和cleanwebpackplugin放进common文件中
+
+
+输出的时候common和dev要合并输出 如何实现呢？
+npm i webpack-merge -Dconst webpack = require('webpack');
+const merge = require('webpack-merge');
+const commonConfig = require('./webpack.common.js');
+
+const devConfig = {
+	mode: 'development',
+	devtool: 'cheap-module-eval-source-map',
+	devServer: {
+		contentBase: './dist',
+		open: true,
+		port: 8080,
+		hot: true
+	},
+
+	plugins: [
+		new webpack.HotModuleReplacementPlugin()
+	],
+	optimization: {
+		usedExports: true
+	}
+}
+
+module.exports = merge(commonConfig, devConfig);
+注意要修改package.json 的运行命令 因为把配置文件放进build里了  
+    "dev": "webpack-dev-server --config ./build/webpack.dev.js"
+
+
+4.3
+代码分割
+
+
+clean-webpack提示的文件has been removed问题 
+原因是配置路径不对 
+new CleanWebpackPlugin(['dist'], {
+			root: path.resolve(__dirname, '../') // clean的路径不再是当前配置文件为根路径 而是当前文件的../
+		})
+
+
+
+打包文件很大 代码很长  那么消耗时间会很长
+
+
+4.4
+第一种方法
+
+把lodash单独写进一个lodash.js  而不懈到index.js里
+
+第二种方法
+main.js被拆分成lodash.js和main.js  业务逻辑发生变化 只用加载main.js即可
+
+code splitting代码分割 在webpack出现之前就有
+
+在common文件里  配置
+optimization: {
+		splitChunks: {
+			chunks: 'all'  // 对同步和异步代码都进行分割
+		}
+	},
+
+
+
+异步加载的代码也能分割
+
+
+4.5
+splitChunkPlugins参数详解
+minSize 和maxSize 在这区间里的文件大小会被分割
+minChunks： 2 意思是如果我只使用了一次lodash 那就不做分割 
+
+
+
+4.7
+懒加载就是通过异步的方式加载模块 例如在页面上设置一个点击事件 点击之后再import
+好处是让加载更快 刷新页面用不到lodash那我们就不import 只有在点击的时候才会触发
+
+什么是chunk呢？
+打包后每个js文件都是一个chunk
+
+
+一般不用配置那么复杂 只需要 chunks：all
+
+
+
+4.8
+打包分析
+脚本里添加一个 webpack --profile --json > stats.json --config  把打包结果放进stats.json中
+然后把stats.json放到github的一个analyse网页上 或者webpack-chart等等
+
+
+首次渲染没有用到的js webpack希望我们异步引入  （性能优化） 例如登录框 首页加载就不需要加载进来 只有点击登录注册的时候才让他显示
+
+但是如果只有在点击的时候才加载出  用户交互会很慢
+
+所以我们需要
+preloading / prefetch 区别在于
+preload是和核心代码一起加载 prefetch是核心代码加载完 再加载异步加载的文件  让首页加载的js覆盖率尽可能高（使用率）
+
+
+4.9
+css文件的代码分割
+output中会出现 chunkFilename这个配置项 和filename的区别？
+打包生成的入口js文件 会走filename这个路线 而异步加载的js文件则会走chunkFilename
+
+在打包js文件的时候 会连里面的css文件一起打包 我们希望单独把css文件打包成一个文件
+minicssextarctplugin
+
+在css的loader相关配置里 替换掉style-loader转而使用
+minicssextarctplugin.loader
+
+
+
+在package.json里修改sideEffects为一个数组 “*.css” 表示不对css文件做tree shaking（打包的时候忽略掉没有用的代码）
+把tree shaking的配置写进common.js里  usedExports： true
+
+
+压缩css文件 
+optimize-css-assets-webpack-plugin
+
+
+需要修改
+"dev": "webpack-dev-server --config ./build/webpack.common.js"
+
+
+
+5.1
+配置一个第三方库
+output: {
+        path: path.resolve(__dirname, 'dist'),
+        filename: 'library.js',
+        library: 'library', // script标签引入时注入一个library全局变量
+        libraryTarget: "umd"  // 表示不管哪种方式引入都可以正常用 amd cmd es6 甚至scirpt标签的 src引入
+    } 
+
+
+ entry: './src/index.js',
+     externals: {
+        lodash: 'lodash'
+    }, // 不打包这个库
+
+
+
+5.2
+PWA是一门新技术 在第一次访问成功 后续访问失败 会有一个页面缓存
+如果使用到了 可以来看一下 
+
+
+5.3 typescript的配置 需要再看
+
+
+
+
+
+5.6
+ESlint的配置
+安装 npm i eslint -D
+然后 npx eslint --init
+选择一种规范
+然后选择javascript格式
+选择安装依赖
+
+第一种方法
+npx eslint src （检测src目录下代码语法规范）
+在命令行里显示错误
+
+第二种 编辑器的插件配合.eslintrc 来显示错误
+
+module.exports = {
+	"extends": "airbnb", // airbnb公司的规范
+  "parser": "babel-eslint",
+  "rules": {
+    "react/prefer-stateless-function": 0, // 配置为0表示 不遵循这个规则
+    "react/jsx-filename-extension": 0
+  },
+  globals: {
+    document: false
+  }
+};
+
+
+
+5.7
+有些编辑器没有这种插件或者很难安装插件
+我们借助eslint-loader
+rules: [{ 
+			test: /\.js$/, 
+			exclude: /node_modules/, 
+			use: ['babel-loader', 'eslint-loader']
+		}
+
+
+以及
+devServer: {
+		overlay: true, // 一旦代码出现错误在浏览器上弹出一个层提示错误
+
+
+5.8
+性能优化
+1.升级node npm yarn版本
+
+2.在尽可能少的模块里使用loader （使用范围缩小）
+例如js文件 exclude node_modules
+
+
+3.plugin合理插件 尽量使用官方推荐 性能好
+
+5.9
+
+4.合理使用resolve
+例如他的extensions   引入的时候会依次查找有没有配置的后缀的文件  如果写了很多 编译起来花费时间变长 所以像jpg这种静态资源就不要写在里面
+
+
+resolve: {
+        mainFiles: ['index', 'child'] // import from ‘./child’  会先找child文件夹下有没有index文件 然后 找有没有child文件
+    }
+
+一般也不配这个
+
+
+路径别名
+alias: {
+        	child: path.resolve(__dirname, './src/child')  // 相对于当前webpack.config文件的路径
+		}
+
+
+5.10
+
+5.使用dllplugin提高打包速度
+在build下新建webpack.dll.js
+
+module.exports = {
+	entry: {
+		vendors: ['react', 'react-dom', 'lodash']
+	},
+	output: {
+        filename: "[name].dll.js",
+	path: path.resolve(__dirname, '../dll')，
+	library: '[name]' // 把打包的第三方库暴露出来
+
+    }
+}
+
+
+在package里
+"script": {
+		"build:dll": "webpack --config ./build/webpack.dll.js"
+	}
+
+
+
+那么如何让暴露出来的第三库打包文件自动放进模板文件呢 
+在webpack.common.js里
+new AddAssetHtmlWebpackPlugin（{
+	filepath: path.resolve(__dirname, '../dll/vendors.dll.js') 
+}）
+
+目的是为了 第三方模块只打包一次
+
+然后我们要在使用的时候引入vendors这个我们打包好的js
+
+在webpack.dll.js里
+plugins: [
+    	new webpack.DllPlugin({
+			name: '[name]',
+			path: path.resolve(__dirname, '../dll/[name].manifest.json')
+		})
+	]
+
+在webpack.common.js里  找到映射关系
+new webpack.DllReferencePlugin({
+			manifest: path.resolve(__dirname, '../dll/vendors.manifest.json')
+		})
+
+
+
+5.11
+如果不想把第三方库全部打包到一个vendors里  那么请看这节课 使用了node的fs文件读取 如果有其他单独的dll.js  push进入plugins数组
+
+
+
+5.12
+6.控制包文件的大小
+
+7. happypack thread-loader parallel-webpack多进程打包
+
+8. 合理使用sourceMap
+
+
+5.13
+多页面打包
+需要再看
+
+
+6 待补充 自己编写loader 和plugin
+
+
+7.3
+
+
+
+
