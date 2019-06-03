@@ -491,7 +491,7 @@ webpack中可以在output输出文件里指定chunkhash， 并且分离经常更
 
 grunt和gulp基于任务task和流stream，类似于jquery链式操作，找到一个或一类文件，对他做一系列的链式操作，更新流上的数据，整条链式操作构成一个任务，多个任务构成整个web构建流程。
 
-#### 9.常见的loader
+#### 9.常见的loader 和plugin
 file-loader 对于字体文件可以使用，把文件输出到一个文件夹中，通过url引用输出的文件
 
 url-loader 和file-loader差不多 在文件很小的情况 例如某些图片 可以用base64的方法把文件内容注入到代码中
@@ -502,6 +502,14 @@ css-loader 加载css 支持模块化 压缩 等等
 
 style-loader 把css代码注入到js中， 通过dom操作去加载css
 
+
+html-webpack-plugin 为html文件中引入的外部资源，可以生成创建html入口文件
+
+mini-css-extract-plugin：分离css文件
+
+clean-webpack-plugin：删除打包文件
+
+happypack：实现多线程加速编译
 
 
 #### 10.webpack的构建流程
