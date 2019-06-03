@@ -438,3 +438,50 @@ root.appendChild(img)
 }
 
 ```
+
+
+
+### 总结
+1.什么是webpack？
+
+weback把项目当做一个整体，通过一个给定的主文件， webpack将从这个主文件找到项目所有的依赖文件，使用loader处理他们，最后打包成一个或者多个浏览器可以使用的文件
+
+2.什么是bundle、chunk、module？
+
+bundle是由webpack打包出来的文件
+
+chunk是指webpack进行模块的依赖分析时，代码分割出来的代码块。
+
+module是开发中的单个模块
+
+3.什么是loader 什么是plugin？
+
+loader相当于是某些源文件的转化元件， 以源文件作为参数，返回新的资源函数，并且引入到打包出口文件。
+
+plugin是用来自定义webpack打包过程，一个插件是含有apply方法的一个对象，通过这个方法可以参与到整个webpack打包的流程中。
+
+4.如何自动生成webpack配置？
+
+webpack-cli /vue-cli等等各种脚手架工具
+
+5.webpack-dev-server
+
+dev-server使用内存来存储webpack开发环境下的打包文件，并且可以使用热模块更新，比传统的http服务器例如nginx对于开发来说更加高效简单
+
+什么是热模块更新呢？
+
+他可以使代码修改过后不用刷新浏览器也可以更新。
+
+
+6.什么是长缓存，webpack怎么对他进行优化？
+
+浏览器在用户访问页面时候，为了加快加载速度，会对用户访问的静态资源进行缓存，但每次代码更新，都需要浏览器重新去下载代码，最简单的办法就是引入新的文件名。
+
+webpack中可以在output输出文件里指定chunkhash， 并且分离经常更新的代码和框架代码，通过NamedMouldesPlugin使再次打包文件名称不变
+
+7.什么是tree shaking？
+
+指的是在打包过程中去除掉那些没有使用到的代码。
+
+
+
