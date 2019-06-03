@@ -442,11 +442,11 @@ root.appendChild(img)
 
 
 ### 总结
-1.什么是webpack？
+#### 1.什么是webpack？
 
-weback把项目当做一个整体，通过一个给定的主文件， webpack将从这个主文件找到项目所有的依赖文件，使用loader处理他们，最后打包成一个或者多个浏览器可以使用的文件
+weback把项目当做一个整体，通过一个给定的主文件， webpack将从这个主文件找到项目所有的依赖文件，使用loader处理他们，用plugin来扩展功能，最后打包成一个或者多个浏览器可以使用的文件
 
-2.什么是bundle、chunk、module？
+#### 2.什么是bundle、chunk、module？
 
 bundle是由webpack打包出来的文件
 
@@ -454,17 +454,20 @@ chunk是指webpack进行模块的依赖分析时，代码分割出来的代码�
 
 module是开发中的单个模块
 
-3.什么是loader 什么是plugin？
+#### 3.什么是loader 什么是plugin？
 
 loader相当于是某些源文件的转化元件， 以源文件作为参数，返回新的资源函数，并且引入到打包出口文件。
 
-plugin是用来自定义webpack打包过程，一个插件是含有apply方法的一个对象，通过这个方法可以参与到整个webpack打包的流程中。
+plugin是用来扩展webpack的功能，webpack生命周期中会有很多广播事件， plugin可以监听到这些事件，在合适的时机通过webpack提供的api来改变输出结果、
 
-4.如何自动生成webpack配置？
+配置的位置也不同。
+
+
+#### 4.如何自动生成webpack配置？
 
 webpack-cli /vue-cli等等各种脚手架工具
 
-5.webpack-dev-server
+#### 5.webpack-dev-server
 
 dev-server使用内存来存储webpack开发环境下的打包文件，并且可以使用热模块更新，比传统的http服务器例如nginx对于开发来说更加高效简单
 
@@ -473,15 +476,84 @@ dev-server使用内存来存储webpack开发环境下的打包文件，并且可
 他可以使代码修改过后不用刷新浏览器也可以更新。
 
 
-6.什么是长缓存，webpack怎么对他进行优化？
+#### 6.什么是长缓存，webpack怎么对他进行优化？
 
 浏览器在用户访问页面时候，为了加快加载速度，会对用户访问的静态资源进行缓存，但每次代码更新，都需要浏览器重新去下载代码，最简单的办法就是引入新的文件名。
 
 webpack中可以在output输出文件里指定chunkhash， 并且分离经常更新的代码和框架代码，通过NamedMouldesPlugin使再次打包文件名称不变
 
-7.什么是tree shaking？
+#### 7.什么是tree shaking？
 
 指的是在打包过程中去除掉那些没有使用到的代码。
 
 
+#### 8.webpack和grunt、gulp的区别
 
+grunt和gulp基于任务task和流stream，类似于jquery链式操作，找到一个或一类文件，对他做一系列的链式操作，更新流上的数据，整条链式操作构成一个任务，多个任务构成整个web构建流程。
+
+#### 9.常见的loader
+file-loader 对于字体文件可以使用，把文件输出到一个文件夹中，通过url引用输出的文件
+
+url-loader 和file-loader差不多 在文件很小的情况 例如某些图片 可以用base64的方法把文件内容注入到代码中
+
+babel-loader 把es6转为es5
+
+css-loader 加载css 支持模块化 压缩 等等
+
+style-loader 把css代码注入到js中， 通过dom操作去加载css
+
+
+
+#### 10.webpack的构建流程
+初始化参数： 从配置文件和shell语句中读取合并参数
+
+开始编译： 用初始化参数得到的compiler对象，加载所有的插件，执行run方法开始执行编译
+
+确定入口： 根据配置的entry来找到所有的入口文件
+
+编译模块: 从入口文件出发， 调用loader对模块进行翻译，再找到模块所依赖的模块，再递归的进行本步骤，直到所有入口依赖文件都经过处理。
+
+完成编译： 得到每个模块之间的依赖关系
+
+输出： 根据依赖关，组装成一个个包含多个模块的chunk，再把每个chunk转为一个单独的文件加入输出列表
+
+完成： 确定好输出内容，根据配置的输出路径和文件名，把文件内容写入文件系统
+
+
+
+#### 11.编写loader和plugin的思路
+
+loader编写：需要遵循单一原则，每个loader只做一种转义工作，拿到的source源文件，可以通过调用this.callback()将内容返回给webpack。
+
+plugins编写： 监听webpack的生命周期里的某些事件，利用webpack提供的api做一些操作。
+
+
+#### 12.热模块HMR原理
+
+参考
+
+
+
+#### 13.webpack打包优化（提高构建速度）
+
+1.使用DllPlugin和DllReferencePlugin对第三方的一些包进行编译
+
+2.使用happypack实现多进程加速编译
+
+3.使用tree-shaking剔除多余代码
+
+
+#### 14.怎么配置单页应用？怎么配置多页应用？
+
+参考
+
+
+#### 15.如何实现按需加载？
+vue ui组件库按需加载为例，elementui 本体体积庞大，我们仅仅使用少量几个组建就够了
+
+有个babel-plugin-component插件安装后再babelrc里配置
+
+
+还有通过import来控制加载时机，当执行到import的时候才会去加载对应的文件 记得要安装babel-polyfill
+
+参考
