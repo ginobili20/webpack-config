@@ -1,6 +1,6 @@
 # webpack-config
 自己配置webpack <br>
-注意该仓库分为master（webpack.confg.js）、d（webpack.common.js、webpack.dev.js、webpack.prod.js）两个分支 <br>
+注意该仓库分为master（webpack.confg.js）、d（webpack.common.js、webpack.dev.js、webpack.prod.js）、dll（使用 dllPlugin优化）三个分支 <br>
 
 ### 后续目标
 学习webpack的打包性能优化
