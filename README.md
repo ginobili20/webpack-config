@@ -444,7 +444,7 @@ root.appendChild(img)
 ### 总结
 #### 1.什么是webpack？
 
-weback把项目当做一个整体，通过一个给定的主文件， webpack将从这个主文件找到项目所有的依赖文件，使用loader处理他们，用plugin来扩展功能，最后打包成一个或者多个浏览器可以使用的文件
+webpack把项目当做一个整体，通过一个给定的主文件， webpack将从这个主文件找到项目所有的依赖文件，使用loader处理他们，用plugin来扩展功能，最后打包成一个或者多个浏览器可以使用的文件
 
 #### 2.什么是bundle、chunk、module？
 
@@ -538,7 +538,7 @@ plugins编写： 监听webpack的生命周期里的某些事件，利用webpack�
 
 #### 12.热模块HMR原理
 
-参考
+[参考](https://cloud.tencent.com/developer/article/1356611)
 
 
 
@@ -553,7 +553,7 @@ plugins编写： 监听webpack的生命周期里的某些事件，利用webpack�
 
 #### 14.怎么配置单页应用？怎么配置多页应用？
 
-参考
+[参考](https://cloud.tencent.com/developer/article/1356611)
 
 
 #### 15.如何实现按需加载？
@@ -564,4 +564,35 @@ vue ui组件库按需加载为例，elementui 本体体积庞大，我们仅仅�
 
 还有通过import来控制加载时机，当执行到import的时候才会去加载对应的文件 记得要安装babel-polyfill
 
-参考
+[参考](https://cloud.tencent.com/developer/article/1356611)
+
+
+
+#### 16.output中的filename和chunkFilename区别？
+filename应该比较好理解，就是对应于entry里面生成出来的文件名。比如：
+
+```
+{
+    entry: {
+        "index": "pages/index.jsx"
+    },
+    output: {
+        filename: "[name].min.js",
+        chunkFilename: "[name].min.js"
+    }
+}
+```
+
+生成出来的文件名为index.min.js。
+
+chunkname我的理解是未被列在entry中，却又需要被打包出来的文件命名配置。什么场景需要呢？我们项目就遇到过，在按需加载（异步）模块的时候，这样的文件是没有被列在entry中的，如使用CommonJS的方式异步加载模块：
+
+
+```
+require.ensure(["modules/tips.jsx"], function(require) {
+    var a = require("modules/tips.jsx");
+    // ...
+}, 'tips');
+```
+
+异步加载的模块是要以文件形式加载哦，所以这时生成的文件名是以chunkname配置的，生成出的文件名就是tips.min.js。
